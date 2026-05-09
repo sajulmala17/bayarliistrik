@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLN — Sistem Listrik Pascabayar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── CSS Variables ─────────────────────────────────────────────────────── */
+:root {
+  --bg:        #07080f;
+  --bg2:       #0d0f1c;
+  --bg3:       #121528;
+  --card:      #151829;
+  --card2:     #1a1e34;
+  --border:    #232740;
+  --border2:   #2e3356;
+  --accent:    #4f6fff;
+  --accent2:   #7b5fff;
+  --accent3:   #ff6b9d;
+  --cyan:      #00d4ff;
+  --green:     #00e5a0;
+  --yellow:    #ffd166;
+  --red:       #ff5c7a;
+  --text:      #e8eaf4;
+  --text2:     #8b90b8;
+  --text3:     #545882;
+  --glow:      0 0 20px rgba(79,111,255,0.25);
+  --glow2:     0 0 40px rgba(79,111,255,0.12);
+  --radius:    14px;
+  --radius2:   8px;
+  --sidebar-w: 240px;
+  --header-h:  64px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Login Screen ──────────────────────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-image: radial-gradient(ellipse 80% 80% at 50% -20%, rgba(79,111,255,0.12) 0%, transparent 60%);
+}
+.login-box {
+  width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 44px 40px;
+  box-shadow: var(--glow2), 0 40px 80px rgba(0,0,0,0.6);
+}
+.login-logo {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 36px;
+}
+.login-logo .logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.login-logo .logo-text { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+.login-logo .logo-sub  { font-size: 11px; color: var(--text2); }
+.login-tabs {
+  display: flex; gap: 4px;
+  background: var(--bg3); border-radius: var(--radius2);
+  padding: 4px; margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1; padding: 8px; border: none;
+  background: transparent; color: var(--text2);
+  border-radius: 6px; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  transition: all .2s;
+}
+.tab-btn.active { background: var(--accent); color: #fff; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+.form-group input, .form-group select {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius2); color: var(--text);
+  font-family: inherit; font-size: 14px;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,111,255,0.15);
+}
+.btn-login {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: var(--radius2);
+  color: #fff; font-family: inherit; font-size: 15px;
+  font-weight: 700; cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 20px rgba(79,111,255,0.35);
+  margin-top: 8px;
+}
+.btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(79,111,255,0.45); }
+.login-err { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; }
+.login-hint { margin-top: 16px; padding: 12px; background: var(--bg3); border-radius: var(--radius2); font-size: 12px; color: var(--text2); line-height: 1.6; }
+.login-hint b { color: var(--accent); }
+
+/* ─── App Layout ────────────────────────────────────────────────────────── */
+#app { display: none; height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.header {
+  height: var(--header-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 16px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+.header-logo { display: flex; align-items: center; gap: 10px; width: var(--sidebar-w); flex-shrink: 0; }
+.header-logo .hlogo { width: 32px; height: 32px; background: linear-gradient(135deg,var(--accent),var(--accent2)); border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.header-logo span { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.header-logo .mono { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); }
+.header-middle { flex: 1; }
+.header-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: rgba(79,111,255,0.1); border: 1px solid rgba(79,111,255,0.25); border-radius: 20px; font-size: 12px; color: var(--accent); }
+.header-badge::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; box-shadow: 0 0 6px var(--green); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: var(--card); border: 1px solid var(--border2);
+  border-radius: 30px; cursor: pointer;
+}
+.avatar { width: 30px; height: 30px; background: linear-gradient(135deg,var(--accent3),var(--accent2)); border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+.user-pill .uname { font-size: 13px; font-weight: 600; }
+.user-pill .urole { font-size: 10px; color: var(--text2); }
+.btn-logout { padding: 7px 14px; background:transparent; border: 1px solid var(--border2); border-radius: var(--radius2); color:var(--text2); font-family:inherit; font-size:12px; cursor:pointer; transition: all .2s; }
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ─── Body ──────────────────────────────────────────────────────────────── */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ─── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 16px 12px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius2);
+  cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500;
+  transition: all .15s; margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--card); color: var(--text); }
+.nav-item.active { background: rgba(79,111,255,0.12); color: var(--accent); border-color: rgba(79,111,255,0.2); font-weight: 600; }
+.nav-item .icon { font-size: 16px; width: 22px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+/* ─── Main Content ──────────────────────────────────────────────────────── */
+.main { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg); }
+
+/* ─── Page Title ─────────────────────────────────────────────────────────── */
+.page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+
+/* ─── Stat Cards ─────────────────────────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--glow2); }
+.stat-card .sc-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }
+.stat-card .sc-val { font-size: 30px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; font-family: 'Space Mono', monospace; }
+.stat-card .sc-sub { font-size: 12px; color: var(--text2); }
+.stat-card .sc-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: .15; }
+.sc-blue  .sc-val { color: var(--accent); }
+.sc-green .sc-val { color: var(--green); }
+.sc-yellow .sc-val { color: var(--yellow); }
+.sc-red   .sc-val { color: var(--red); }
+.sc-cyan  .sc-val { color: var(--cyan); }
+
+/* ─── Cards / Panels ─────────────────────────────────────────────────────── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; }
+.card-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 14px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* ─── Toolbar ─────────────────────────────────────────────────────────────── */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius2); padding: 8px 12px;
+  flex: 1; min-width: 200px;
+}
+.search-box input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 13px; width: 100%;
+}
+.search-box .si { color: var(--text3); }
+.filter-select {
+  padding: 9px 12px; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: var(--radius2);
+  color: var(--text); font-family: inherit; font-size: 13px; outline: none;
+}
+.btn {
+  padding: 9px 16px; border-radius: var(--radius2);
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #3d58e8; }
+.btn-success { background: var(--green); color: var(--bg); }
+.btn-success:hover { opacity: .9; }
+.btn-danger  { background: transparent; color: var(--red); border: 1px solid var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─── Table ──────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; border-bottom: 1px solid var(--border); background: var(--bg3); white-space: nowrap; }
+td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--card2); color: var(--text); }
+.td-main { color: var(--text); font-weight: 600; }
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.badge-green  { background: rgba(0,229,160,.15); color: var(--green); }
+.badge-red    { background: rgba(255,92,122,.15);  color: var(--red); }
+.badge-yellow { background: rgba(255,209,102,.15); color: var(--yellow); }
+.badge-blue   { background: rgba(79,111,255,.15);  color: var(--accent); }
+.badge-gray   { background: rgba(139,144,184,.1);  color: var(--text2); }
+
+/* ─── Modal ──────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+  z-index: 500; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  width: 90%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 40px 80px rgba(0,0,0,.6);
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.modal-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; padding:4px; transition:color .2s; }
+.modal-close:hover { color: var(--red); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display:block; font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; padding:10px 12px;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:var(--radius2); color:var(--text);
+  font-family:inherit; font-size:13px; outline:none;
+  transition: border-color .2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent); }
+.form-group textarea { resize:vertical; min-height:70px; }
+
+/* ─── Toast ──────────────────────────────────────────────────────────────── */
+#toast-container { position:fixed; bottom:24px; right:24px; z-index:9998; display:flex; flex-direction:column; gap:8px; }
+.toast {
+  padding: 12px 18px; border-radius: var(--radius2);
+  font-size: 13px; font-weight: 600;
+  animation: fadeIn .3s ease;
+  max-width: 320px;
+}
+.toast-success { background:#0d2b21; border:1px solid var(--green); color:var(--green); }
+.toast-error   { background:#2a0d14; border:1px solid var(--red);   color:var(--red); }
+.toast-info    { background:#0d1529; border:1px solid var(--accent); color:var(--accent); }
+@keyframes fadeIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+/* ─── Dashboard specific ─────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+.chart-bar-wrap { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 4px; }
+.chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.chart-bar { border-radius: 4px 4px 0 0; width: 100%; min-height: 4px; background: linear-gradient(to top, var(--accent), var(--accent2)); transition: height .5s ease; }
+.chart-label { font-size: 10px; color: var(--text3); }
+.chart-val { font-size: 10px; color: var(--accent); font-weight: 700; }
+
+/* ─── Empty state ─────────────────────────────────────────────────────────── */
+.empty { text-align:center; padding: 48px 24px; color: var(--text3); }
+.empty .ei { font-size: 48px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* ─── Loading ────────────────────────────────────────────────────────────── */
+.loading { text-align:center; padding:32px; color:var(--text3); font-size:13px; }
+
+/* ─── Receipt ─────────────────────────────────────────────────────────────── */
+.receipt { background:var(--bg3); border:1px solid var(--border2); border-radius:var(--radius); padding:20px; font-family:'Space Mono',monospace; font-size:12px; line-height:1.8; }
+.receipt-title { font-size:14px; font-weight:700; text-align:center; margin-bottom:12px; color:var(--accent); }
+.receipt-row { display:flex; justify-content:space-between; color:var(--text2); }
+.receipt-row.total { color:var(--green); font-weight:700; font-size:13px; border-top:1px dashed var(--border2); margin-top:8px; padding-top:8px; }
+
+/* ─── Rp formatter ───────────────────────────────────────────────────────── */
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">PLN Portal</div>
+        <div class="logo-sub">Sistem Pembayaran Pascabayar</div>
+      </div>
+    </div>
+    <div class="login-tabs">
+      <button class="tab-btn active" onclick="setRole('admin',this)">👤 Admin</button>
+      <button class="tab-btn" onclick="setRole('pelanggan',this)">🏠 Pelanggan</button>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Masukkan username...">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Masukkan password...">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Masuk →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-hint">
+      <b>Demo Admin:</b> superadmin / admin123<br>
+      <b>Demo Kasir:</b> kasir01 / kasir123<br>
+      <b>Demo Pelanggan:</b> plg001 / pelanggan123
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="hlogo">⚡</div>
+      <div>
+        <div><span style="font-weight:800">PLN</span> <span class="mono">PORTAL</span></div>
+      </div>
+    </div>
+    <div class="header-middle">
+      <span class="header-badge" id="system-status">Sistem Online</span>
+    </div>
+    <div class="header-right">
+      <div class="user-pill">
+        <div class="avatar" id="user-avatar">A</div>
+        <div>
+          <div class="uname" id="user-name">-</div>
+          <div class="urole" id="user-role">-</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <!-- nav items injected by JS -->
+    </aside>
+
+    <!-- Main -->
+    <main class="main" id="main-content">
+      <!-- content injected by JS -->
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modal-inner">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let currentUser = null;
+let loginRole   = 'admin';
+let tarifList   = [];
+let levelList   = [];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+const bulanNama = b => ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][b];
+const statusBadge = s => ({
+  belum_bayar:'<span class="badge badge-red">Belum Bayar</span>',
+  sudah_bayar:'<span class="badge badge-green">Lunas</span>',
+  cicilan:    '<span class="badge badge-yellow">Cicilan</span>',
+}[s] || `<span class="badge badge-gray">${s}</span>`);
+
+function toast(msg, type='info') {
+  const c = $('toast-container');
+  const d = document.createElement('div');
+  d.className = `toast toast-${type}`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3500);
+}
+
+async function api(method, path, body) {
+  const opts = { method, credentials:'include', headers: {'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch('/api' + path, opts);
+  return r.json();
+}
+
+function setRole(role, el) {
+  loginRole = role;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const username = $('login-username').value.trim();
+  const password = $('login-password').value;
+  $('login-err').textContent = '';
+  if (!username || !password) { $('login-err').textContent = 'Isi username dan password'; return; }
+  const res = await api('POST', '/login', { username, password, role: loginRole });
+  if (res.success) {
+    currentUser = res.user;
+    showApp();
+  } else {
+    $('login-err').textContent = res.message || 'Login gagal';
+  }
+}
+
+async function checkSession() {
+  const res = await api('GET', '/me');
+  if (res.success) { currentUser = res.user; showApp(); }
+}
+
+async function doLogout() {
+  await api('POST', '/logout');
+  currentUser = null;
+  $('app').classList.remove('visible');
+  $('login-screen').style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// APP SHELL
+// ═══════════════════════════════════════════════════════════════════════════
+function showApp() {
+  $('login-screen').style.display = 'none';
+  $('app').classList.add('visible');
+  $('user-name').textContent = currentUser.nama;
+  $('user-role').textContent = currentUser.level || currentUser.role;
+  $('user-avatar').textContent = currentUser.nama[0].toUpperCase();
+  buildSidebar();
+  navigate('dashboard');
+  loadMetaData();
+}
+
+async function loadMetaData() {
+  const tr = await api('GET', '/tarif');
+  if (tr.success) tarifList = tr.data;
+  const lv = await api('GET', '/level');
+  if (lv.success) levelList = lv.data;
+}
+
+const ADMIN_NAV = [
+  { section: 'Utama' },
+  { id:'dashboard',   icon:'📊', label:'Dashboard' },
+  { section: 'Manajemen' },
+  { id:'pelanggan',   icon:'👥', label:'Pelanggan' },
+  { id:'tarif',       icon:'💡', label:'Tarif & Daya' },
+  { id:'penggunaan',  icon:'📏', label:'Catat Meter' },
+  { section: 'Keuangan' },
+  { id:'tagihan',     icon:'📋', label:'Tagihan' },
+  { id:'pembayaran',  icon:'💳', label:'Pembayaran' },
+  { section: 'Admin' },
+  { id:'users',       icon:'🔧', label:'Kelola User' },
+  { id:'daya900',     icon:'🔌', label:'Pelanggan 900W' },
+];
+const PLG_NAV = [
+  { section: 'Akun Saya' },
+  { id:'dashboard',   icon:'📊', label:'Dashboard' },
+  { id:'tagihan',     icon:'📋', label:'Tagihan Saya' },
+  { id:'pembayaran',  icon:'💳', label:'Riwayat Bayar' },
+];
+
+function buildSidebar() {
+  const nav = currentUser.role === 'admin' ? ADMIN_NAV : PLG_NAV;
+  const sb = $('sidebar');
+  sb.innerHTML = '';
+  nav.forEach(item => {
+    if (item.section) {
+      const s = document.createElement('div');
+      s.className = 'sidebar-section';
+      s.innerHTML = `<div class="sidebar-label">${item.section}</div>`;
+      sb.appendChild(s);
+    } else {
+      const d = document.createElement('div');
+      d.className = 'nav-item';
+      d.id = 'nav-' + item.id;
+      d.innerHTML = `<span class="icon">${item.icon}</span>${item.label}`;
+      d.onclick = () => navigate(item.id);
+      sb.querySelector('.sidebar-section:last-child').appendChild(d);
+    }
+  });
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = $('nav-' + id);
+  if (el) el.classList.add('active');
+}
+
+function navigate(page) {
+  setActiveNav(page);
+  const pages = { dashboard, pelanggan, tarif, penggunaan, tagihan, pembayaran, users, daya900 };
+  if (pages[page]) pages[page]();
+  else $('main-content').innerHTML = `<div class="empty"><div class="ei">🚧</div><p>Halaman belum tersedia</p></div>`;
+}
+
+// Modal helpers
+function openModal(title, body, footer='') {
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = body;
+  $('modal-footer').innerHTML = footer;
+  $('modal').classList.add('open');
+}
+function closeModal() { $('modal').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+async function dashboard() {
+  $('main-content').innerHTML = '<div class="loading">⏳ Memuat data...</div>';
+  const res = await api('GET', '/dashboard');
+  if (!res.success) { $('main-content').innerHTML = '<div class="loading">Gagal memuat</div>'; return; }
+  const d = res.data;
+
+  const barMax = d.grafik_pendapatan.length ? Math.max(...d.grafik_pendapatan.map(g=>g.total)) : 1;
+  const bars = d.grafik_pendapatan.map(g => `
+    <div class="chart-bar-col">
+      <div class="chart-val">${(g.total/1e6).toFixed(1)}M</div>
+      <div class="chart-bar" style="height:${Math.max(8,(g.total/barMax)*100)}px"></div>
+      <div class="chart-label">${g.bulan.slice(5)}</div>
+    </div>
+  `).join('') || '<div style="color:var(--text3);font-size:13px;padding:40px">Belum ada data pembayaran</div>';
+
+  const rows = d.tagihan_terbaru.map(t => `
+    <tr>
+      <td class="td-main">${t.nama_pelanggan}</td>
+      <td>${t.nomor_kwh}</td>
+      <td>${bulanNama(t.bulan)}/${t.tahun}</td>
+      <td style="color:var(--yellow)">${rp(t.total_tagihan)}</td>
+      <td>${statusBadge(t.status)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5"><div class="empty"><p>Belum ada tagihan</p></div></td></tr>';
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Selamat datang, ${currentUser.nama} · ${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+
+    <div class="stats-row">
+      <div class="stat-card sc-blue">
+        <div class="sc-label">Total Pelanggan</div>
+        <div class="sc-val">${d.total_pelanggan}</div>
+        <div class="sc-sub">Pelanggan aktif</div>
+        <div class="sc-icon">👥</div>
+      </div>
+      <div class="stat-card sc-red">
+        <div class="sc-label">Belum Bayar</div>
+        <div class="sc-val">${d.tagihan_belum_bayar}</div>
+        <div class="sc-sub">Tagihan outstanding</div>
+        <div class="sc-icon">📋</div>
+      </div>
+      <div class="stat-card sc-green">
+        <div class="sc-label">Tagihan Lunas</div>
+        <div class="sc-val">${d.tagihan_lunas}</div>
+        <div class="sc-sub">Sudah dibayar</div>
+        <div class="sc-icon">✅</div>
+      </div>
+      <div class="stat-card sc-yellow">
+        <div class="sc-label">Pendapatan Bulan Ini</div>
+        <div class="sc-val" style="font-size:20px">${rp(d.pendapatan_bulan_ini)}</div>
+        <div class="sc-sub">Total penerimaan</div>
+        <div class="sc-icon">💰</div>
+      </div>
+      <div class="stat-card sc-cyan">
+        <div class="sc-label">Pencatatan Bulan Ini</div>
+        <div class="sc-val">${d.pencatatan_bulan_ini}</div>
+        <div class="sc-sub">Meter tercatat</div>
+        <div class="sc-icon">📏</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Pendapatan 6 Bulan Terakhir</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-bar-wrap">${bars}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Tagihan Terbaru</div>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('tagihan')">Lihat Semua →</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Pelanggan</th><th>No.KWH</th><th>Periode</th><th>Tagihan</th><th>Status</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: PELANGGAN
+// ═══════════════════════════════════════════════════════════════════════════
+async function pelanggan(search='') {
+  $('main-content').innerHTML = '<div class="loading">⏳ Memuat data pelanggan...</div>';
+  const res = await api('GET', `/pelanggan?search=${encodeURIComponent(search)}`);
+  if (!res.success) return;
+
+  const rows = res.data.map(p => `
+    <tr>
+      <td class="td-main">${p.nomor_kwh}</td>
+      <td>${p.nama_pelanggan}</td>
+      <td>${p.username}</td>
+      <td>${p.daya}W<br><span style="font-size:11px;color:var(--text3)">${p.nama_golongan}</span></td>
+      <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.alamat||'-'}</td>
+      <td>${p.status_aktif ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Nonaktif</span>'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editPelanggan(${p.id_pelanggan})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="hapusPelanggan(${p.id_pelanggan},'${p.nama_pelanggan}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7"><div class="empty"><div class="ei">👥</div><p>Tidak ada data pelanggan</p></div></td></tr>';
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Manajemen Pelanggan</div>
+    <div class="page-sub">Total ${res.data.length} pelanggan terdaftar</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Daftar Pelanggan</div>
+        <button class="btn btn-primary" onclick="tambahPelanggan()">+ Tambah Pelanggan</button>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="si">🔍</span>
+            <input type="text" id="srch-plg" placeholder="Cari nama / nomor KWH..." value="${search}" onkeyup="if(event.key==='Enter')pelanggan(this.value)">
+          </div>
+          <button class="btn btn-ghost" onclick="pelanggan($('srch-plg').value)">Cari</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No. KWH</th><th>Nama</th><th>Username</th><th>Daya</th><th>Alamat</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function tambahPelanggan() {
+  const tarifOpts = tarifList.map(t => `<option value="${t.id_tarif}">${t.daya}W — ${t.nama_golongan} (${rp(t.tarifperkwh)}/kWh)</option>`).join('');
+  openModal('Tambah Pelanggan', `
+    <div class="form-row">
+      <div class="form-group">
+        <label>Username</label><input id="f-username" placeholder="plg001">
+      </div>
+      <div class="form-group">
+        <label>Password</label><input id="f-password" type="password" placeholder="••••••">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nama Pelanggan</label><input id="f-nama" placeholder="Nama lengkap">
+      </div>
+      <div class="form-group">
+        <label>Nomor KWH</label><input id="f-kwh" placeholder="5210001001">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Golongan Tarif</label>
+      <select id="f-tarif">${tarifOpts}</select>
+    </div>
+    <div class="form-group">
+      <label>Alamat</label><textarea id="f-alamat" placeholder="Alamat lengkap"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>No. HP</label><input id="f-hp" placeholder="08xx">
+      </div>
+      <div class="form-group">
+        <label>Email</label><input id="f-email" type="email" placeholder="email@domain.com">
+      </div>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="simpanPelanggan()">💾 Simpan</button>
+  `);
+}
+
+async function simpanPelanggan() {
+  const body = {
+    username:       $('f-username').value,
+    password:       $('f-password').value,
+    nama_pelanggan: $('f-nama').value,
+    nomor_kwh:      $('f-kwh').value,
+    id_tarif:       $('f-tarif').value,
+    alamat:         $('f-alamat').value,
+    no_hp:          $('f-hp').value,
+    email:          $('f-email').value,
+  };
+  const res = await api('POST', '/pelanggan', body);
+  if (res.success) { closeModal(); toast('Pelanggan berhasil ditambahkan','success'); pelanggan(); }
+  else toast(res.message, 'error');
+}
+
+async function editPelanggan(id) {
+  const res = await api('GET', `/pelanggan/${id}`);
+  const p = res.data;
+  const tarifOpts = tarifList.map(t => `<option value="${t.id_tarif}" ${t.id_tarif==p.id_tarif?'selected':''}>${t.daya}W — ${t.nama_golongan}</option>`).join('');
+  openModal('Edit Pelanggan', `
+    <input type="hidden" id="e-id" value="${p.id_pelanggan}">
+    <div class="form-group"><label>Nama Pelanggan</label><input id="e-nama" value="${p.nama_pelanggan}"></div>
+    <div class="form-group"><label>Golongan Tarif</label><select id="e-tarif">${tarifOpts}</select></div>
+    <div class="form-group"><label>Alamat</label><textarea id="e-alamat">${p.alamat||''}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>No. HP</label><input id="e-hp" value="${p.no_hp||''}"></div>
+      <div class="form-group"><label>Email</label><input id="e-email" value="${p.email||''}"></div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="e-status">
+        <option value="1" ${p.status_aktif?'selected':''}>Aktif</option>
+        <option value="0" ${!p.status_aktif?'selected':''}>Nonaktif</option>
+      </select>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="updatePelanggan()">💾 Update</button>
+  `);
+}
+
+async function updatePelanggan() {
+  const id = $('e-id').value;
+  const body = {
+    nama_pelanggan: $('e-nama').value,
+    id_tarif:       $('e-tarif').value,
+    alamat:         $('e-alamat').value,
+    no_hp:          $('e-hp').value,
+    email:          $('e-email').value,
+    status_aktif:   $('e-status').value,
+  };
+  const res = await api('PUT', `/pelanggan/${id}`, body);
+  if (res.success) { closeModal(); toast('Data diperbarui','success'); pelanggan(); }
+  else toast(res.message,'error');
+}
+
+async function hapusPelanggan(id, nama) {
+  if (!confirm(`Hapus pelanggan "${nama}"? Data ini tidak dapat dikembalikan.`)) return;
+  const res = await api('DELETE', `/pelanggan/${id}`);
+  if (res.success) { toast('Pelanggan dihapus','success'); pelanggan(); }
+  else toast(res.message,'error');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: TARIF
+// ═══════════════════════════════════════════════════════════════════════════
+async function tarif() {
+  const res = await api('GET', '/tarif');
+  const rows = res.data.map(t => `
+    <tr>
+      <td class="td-main">${t.id_tarif}</td>
+      <td><span style="color:var(--cyan);font-weight:700">${t.daya}W</span></td>
+      <td>${t.nama_golongan||'-'}</td>
+      <td style="color:var(--yellow)">${rp(t.tarifperkwh)}/kWh</td>
+      <td>${t.keterangan||'-'}</td>
+    </tr>
+  `).join('');
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Tarif Listrik</div>
+    <div class="page-sub">Referensi tarif per golongan daya (data dari PLN)</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">⚡ Daftar Tarif & Golongan Daya</div></div>
+      <div class="card-body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Daya (Watt)</th><th>Golongan</th><th>Tarif/kWh</th><th>Keterangan</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: PENGGUNAAN
+// ═══════════════════════════════════════════════════════════════════════════
+async function penggunaan(bulan='', tahun='', search='') {
+  $('main-content').innerHTML = '<div class="loading">⏳ Memuat data penggunaan...</div>';
+  const q = `bulan=${bulan}&tahun=${tahun}&search=${encodeURIComponent(search)}`;
+  const res = await api('GET', `/penggunaan?${q}`);
+
+  const rows = (res.data||[]).map(p => `
+    <tr>
+      <td class="td-main">${p.nomor_kwh}</td>
+      <td>${p.nama_pelanggan}</td>
+      <td>${p.daya}W</td>
+      <td>${bulanNama(p.bulan)}/${p.tahun}</td>
+      <td>${p.meter_awal}</td>
+      <td>${p.meter_ahir}</td>
+      <td style="color:var(--cyan);font-weight:700">${p.jumlah_kwh} kWh</td>
+      <td style="color:var(--yellow)">${rp(p.estimasi_tagihan)}</td>
+      <td>${statusBadge(p.status_tagihan)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="9"><div class="empty"><div class="ei">📏</div><p>Belum ada data penggunaan</p></div></td></tr>';
+
+  const now = new Date();
+  $('main-content').innerHTML = `
+    <div class="page-title">Catat Penggunaan Meter</div>
+    <div class="page-sub">Input data meter bulanan — tagihan akan otomatis dibuat via Trigger</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📏 Data Penggunaan Listrik</div>
+        <button class="btn btn-primary" onclick="tambahPenggunaan()">+ Catat Meter Baru</button>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="si">🔍</span>
+            <input type="text" id="srch-pg" placeholder="Cari pelanggan / nomor KWH..." value="${search}">
+          </div>
+          <select class="filter-select" id="flt-bln">
+            <option value="">Semua Bulan</option>
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(b=>`<option value="${b}" ${b==bulan?'selected':''}>${bulanNama(b)}</option>`).join('')}
+          </select>
+          <input type="number" class="filter-select" id="flt-thn" value="${tahun||now.getFullYear()}" placeholder="Tahun" style="width:90px">
+          <button class="btn btn-ghost" onclick="penggunaan($('flt-bln').value,$('flt-thn').value,$('srch-pg').value)">Filter</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No.KWH</th><th>Pelanggan</th><th>Daya</th><th>Periode</th><th>Meter Awal</th><th>Meter Akhir</th><th>Pemakaian</th><th>Est. Tagihan</th><th>Status</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function tambahPenggunaan() {
+  const plgRes = await api('GET', '/pelanggan?search=');
+  const opts = plgRes.data.map(p => `<option value="${p.id_pelanggan}">${p.nomor_kwh} — ${p.nama_pelanggan}</option>`).join('');
+  const now = new Date();
+
+  openModal('Catat Meter Baru', `
+    <div class="form-group"><label>Pelanggan</label><select id="pg-plg">${opts}</select></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bulan</label>
+        <select id="pg-bln">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(b=>`<option value="${b}" ${b==now.getMonth()+1?'selected':''}>${bulanNama(b)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Tahun</label><input id="pg-thn" type="number" value="${now.getFullYear()}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Meter Awal (kWh)</label><input id="pg-awal" type="number" step="0.01" placeholder="1200.00"></div>
+      <div class="form-group"><label>Meter Akhir (kWh)</label><input id="pg-ahir" type="number" step="0.01" placeholder="1345.00"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tanggal Catat</label><input id="pg-tgl" type="date" value="${now.toISOString().slice(0,10)}"></div>
+      <div class="form-group"><label>Nama Petugas</label><input id="pg-petugas" placeholder="Petugas A"></div>
+    </div>
+    <div style="background:rgba(79,111,255,.08);border:1px solid rgba(79,111,255,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--accent)">
+      ⚡ <b>Info:</b> Tagihan akan otomatis dibuat melalui TRIGGER setelah data tersimpan.
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="simpanPenggunaan()">⚡ Simpan & Buat Tagihan</button>
+  `);
+}
+
+async function simpanPenggunaan() {
+  const body = {
+    id_pelanggan: $('pg-plg').value,
+    bulan:        $('pg-bln').value,
+    tahun:        $('pg-thn').value,
+    meter_awal:   parseFloat($('pg-awal').value),
+    meter_ahir:   parseFloat($('pg-ahir').value),
+    tanggal_catat: $('pg-tgl').value,
+    petugas:      $('pg-petugas').value,
+  };
+  if (body.meter_ahir <= body.meter_awal) { toast('Meter akhir harus lebih besar dari meter awal','error'); return; }
+  const res = await api('POST', '/penggunaan', body);
+  if (res.success) { closeModal(); toast('✅ ' + res.message,'success'); penggunaan(); }
+  else toast(res.message,'error');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: TAGIHAN
+// ═══════════════════════════════════════════════════════════════════════════
+async function tagihan(status='', search='') {
+  $('main-content').innerHTML = '<div class="loading">⏳ Memuat tagihan...</div>';
+  const q = `status=${status}&search=${encodeURIComponent(search)}`;
+  const res = await api('GET', `/tagihan?${q}`);
+
+  const rows = (res.data||[]).map(t => `
+    <tr>
+      <td class="td-main">${t.nomor_kwh}</td>
+      <td>${t.nama_pelanggan}</td>
+      <td>${t.daya}W</td>
+      <td>${bulanNama(t.bulan)}/${t.tahun}</td>
+      <td>${t.jumlah_meter} kWh</td>
+      <td style="color:var(--yellow);font-weight:700">${rp(t.total_tagihan)}</td>
+      <td>${t.jatuh_tempo||'-'}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td>
+        ${t.status==='belum_bayar' ? `<button class="btn btn-success btn-sm" onclick="bayarTagihan(${t.id_tagihan},${t.total_tagihan})">💳 Bayar</button>` : '<span style="color:var(--text3);font-size:12px">Lunas</span>'}
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="9"><div class="empty"><div class="ei">📋</div><p>Tidak ada tagihan</p></div></td></tr>';
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Manajemen Tagihan</div>
+    <div class="page-sub">Daftar tagihan listrik pelanggan</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 Daftar Tagihan</div></div>
+      <div class="card-body">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="si">🔍</span>
+            <input type="text" id="srch-tg" placeholder="Cari pelanggan / no.KWH..." value="${search}">
+          </div>
+          <select class="filter-select" id="flt-status" onchange="tagihan(this.value,$('srch-tg').value)">
+            <option value="" ${!status?'selected':''}>Semua Status</option>
+            <option value="belum_bayar" ${status==='belum_bayar'?'selected':''}>Belum Bayar</option>
+            <option value="sudah_bayar" ${status==='sudah_bayar'?'selected':''}>Sudah Bayar</option>
+          </select>
+          <button class="btn btn-ghost" onclick="tagihan($('flt-status').value,$('srch-tg').value)">Filter</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No.KWH</th><th>Pelanggan</th><th>Daya</th><th>Periode</th><th>Pemakaian</th><th>Total Tagihan</th><th>Jatuh Tempo</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bayarTagihan(id_tagihan, total) {
+  openModal('Proses Pembayaran', `
+    <input type="hidden" id="by-id" value="${id_tagihan}">
+    <div class="receipt">
+      <div class="receipt-title">⚡ BUKTI TAGIHAN LISTRIK</div>
+      <div class="receipt-row"><span>Total Tagihan</span><span>${rp(total)}</span></div>
+      <div class="receipt-row"><span>Biaya Admin</span><span>${rp(2500)}</span></div>
+      <div class="receipt-row total"><span>TOTAL BAYAR</span><span>${rp(+total + 2500)}</span></div>
+    </div>
+    <div style="margin-top:16px">
+      <div class="form-group"><label>Metode Pembayaran</label>
+        <select id="by-metode">
+          <option value="tunai">💵 Tunai</option>
+          <option value="transfer">🏦 Transfer Bank</option>
+          <option value="qris">📱 QRIS</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Keterangan (opsional)</label><input id="by-ket" placeholder="Catatan pembayaran..."></div>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-success" onclick="prosesBayar()">✅ Konfirmasi Bayar</button>
+  `);
+}
+
+async function prosesBayar() {
+  const body = {
+    id_tagihan:   parseInt($('by-id').value),
+    metode_bayar: $('by-metode').value,
+    keterangan:   $('by-ket').value,
+    biaya_admin:  2500,
+  };
+  const res = await api('POST', '/pembayaran', body);
+  if (res.success) {
+    closeModal();
+    toast(`✅ Bayar sukses! Ref: ${res.no_referensi}`, 'success');
+    tagihan();
+  } else toast(res.message, 'error');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: PEMBAYARAN
+// ═══════════════════════════════════════════════════════════════════════════
+async function pembayaran(search='') {
+  $('main-content').innerHTML = '<div class="loading">⏳ Memuat riwayat pembayaran...</div>';
+  const res = await api('GET', `/pembayaran?search=${encodeURIComponent(search)}`);
+
+  const rows = (res.data||[]).map(p => `
+    <tr>
+      <td class="td-main">${p.no_referensi||'-'}</td>
+      <td>${p.nomor_kwh}</td>
+      <td>${p.nama_pelanggan}</td>
+      <td>${bulanNama(p.bulan)}/${p.tahun}</td>
+      <td>${p.tanggal_pembayaran}</td>
+      <td>${p.jumlah_meter} kWh</td>
+      <td style="color:var(--green);font-weight:700">${rp(p.total_bayar)}</td>
+      <td><span class="badge badge-blue">${p.metode_bayar}</span></td>
+      <td>${p.nama_kasir}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="9"><div class="empty"><div class="ei">💳</div><p>Belum ada riwayat pembayaran</p></div></td></tr>';
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Riwayat Pembayaran</div>
+    <div class="page-sub">Transaksi pembayaran listrik pelanggan</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">💳 Daftar Pembayaran</div></div>
+      <div class="card-body">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="si">🔍</span>
+            <input type="text" id="srch-pb" placeholder="Cari pelanggan..." value="${search}">
+          </div>
+          <button class="btn btn-ghost" onclick="pembayaran($('srch-pb').value)">Cari</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No. Referensi</th><th>No.KWH</th><th>Pelanggan</th><th>Periode</th><th>Tgl Bayar</th><th>Pemakaian</th><th>Total Bayar</th><th>Metode</th><th>Kasir</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: USERS
+// ═══════════════════════════════════════════════════════════════════════════
+async function users() {
+  const res = await api('GET', '/users');
+  const rows = (res.data||[]).map(u => `
+    <tr>
+      <td class="td-main">${u.id_user}</td>
+      <td>${u.username}</td>
+      <td>${u.nama_admin}</td>
+      <td>${u.email||'-'}</td>
+      <td>${u.hp||'-'}</td>
+      <td><span class="badge badge-blue">${u.nama_level}</span></td>
+    </tr>
+  `).join('');
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Kelola User Admin</div>
+    <div class="page-sub">Manajemen akun admin & kasir sistem</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔧 Daftar User</div>
+        <button class="btn btn-primary" onclick="tambahUser()">+ Tambah User</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Username</th><th>Nama</th><th>Email</th><th>HP</th><th>Level</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function tambahUser() {
+  const lvlOpts = levelList.map(l => `<option value="${l.id_level}">${l.nama_level}</option>`).join('');
+  openModal('Tambah User Admin', `
+    <div class="form-row">
+      <div class="form-group"><label>Username</label><input id="u-username"></div>
+      <div class="form-group"><label>Password</label><input id="u-pass" type="password"></div>
+    </div>
+    <div class="form-group"><label>Nama Admin</label><input id="u-nama"></div>
+    <div class="form-group"><label>Level Akses</label><select id="u-level">${lvlOpts}</select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input id="u-email" type="email"></div>
+      <div class="form-group"><label>HP</label><input id="u-hp"></div>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="simpanUser()">💾 Simpan</button>
+  `);
+}
+
+async function simpanUser() {
+  const res = await api('POST', '/users', {
+    username: $('u-username').value, password: $('u-pass').value,
+    nama_admin: $('u-nama').value, id_level: $('u-level').value,
+    email: $('u-email').value, hp: $('u-hp').value
+  });
+  if (res.success) { closeModal(); toast('User berhasil ditambahkan','success'); users(); }
+  else toast(res.message,'error');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: PELANGGAN 900 WATT (Stored Procedure)
+// ═══════════════════════════════════════════════════════════════════════════
+async function daya900() {
+  $('main-content').innerHTML = '<div class="loading">⏳ Menjalankan stored procedure sp_pelanggan_900watt()...</div>';
+  const res = await api('GET', '/pelanggan/daya900');
+
+  const rows = (res.data||[]).map(p => `
+    <tr>
+      <td class="td-main">${p.nomor_kwh}</td>
+      <td>${p.nama_pelanggan}</td>
+      <td>${p.alamat||'-'}</td>
+      <td>${p.no_hp||'-'}</td>
+      <td>${p.email||'-'}</td>
+      <td><span style="color:var(--cyan);font-weight:700">${p.daya}W</span></td>
+      <td><span style="color:var(--yellow)">${rp(p.tarifperkwh)}/kWh</span></td>
+    </tr>
+  `).join('') || '<tr><td colspan="7"><div class="empty"><div class="ei">🔌</div><p>Tidak ada pelanggan 900W</p></div></td></tr>';
+
+  $('main-content').innerHTML = `
+    <div class="page-title">Pelanggan Daya 900 Watt</div>
+    <div class="page-sub">Hasil dari: <code style="background:var(--bg3);padding:2px 8px;border-radius:4px;color:var(--accent)">CALL sp_pelanggan_900watt()</code></div>
+    <div class="card" style="border-color:rgba(0,212,255,.2)">
+      <div class="card-header" style="background:rgba(0,212,255,.05)">
+        <div class="card-title">🔌 Pelanggan Golongan R-1/TR 900 VA</div>
+        <span class="badge badge-blue">${(res.data||[]).length} pelanggan</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No.KWH</th><th>Nama</th><th>Alamat</th><th>No.HP</th><th>Email</th><th>Daya</th><th>Tarif</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+checkSession();
+</script>
+</body>
+</html>
